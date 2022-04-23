@@ -1,19 +1,53 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Apr 22 11:33:08 2022
+Created on Sat Apr 23 21:09:11 2022
 
 @author: 95118
 """
 
 import tkinter
+from tkinter import *
 import tkinter.messagebox
 from PIL import Image,ImageTk
 from utils import *
 
+def onclick(x):
+     k=int(x)
+     if(k==0):
+         tkinter.messagebox.showinfo('提示','您输入的值无效！')
+     else:
+         url = "https://movie.douban.com/top250"
+         headers = {
+         "user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.50"
+                 }
+         resp=requests.get(url,headers=headers)
+         page_content=resp.text
+
+         obj = re.compile(
+             r'<li>.*?<div class="item">.*?<span class="title">(?P<电影名>.*?)'
+             r'</span>.*?<p class="">.*?<br>(?P<年份>.*?)&nbsp.*?'
+             r'<span class="rating_num" property="v:average">(?P<评分>.*?)</span>'
+             r'.*?<span>(?P<评价人数>.*?)人评价</span>', re.S)
+
+         ret = obj.finditer(page_content)
+         k=int(x)
+         i=1
+         for it in ret:
+             if(i==k):
+                 canvas_root.create_text(15, 500, 
+                                         text = '电影名：%s\n年份：%s\n评分：%s\n评价人数：%s'%(it.group("电影名"),it.group("年份").strip(),it.group("评分"),it.group("评价人数")),
+                                         font=('楷体',15),
+                                         fill='DodgerBlue',
+                                         anchor = W,
+                                         justify = LEFT)
+                 break
+             else:
+                 i=i+1
+     
 root=tkinter.Tk()
 root.title('豆瓣电影信息提取器')
 root.config(bg='#8DB6CD')#窗口内部全部设为淡蓝色
-root.geometry('1000x600+130+10')
+root.geometry('600x600+300+30')
 root.resizable(True,True)#用户可不可以调整窗口大小
 root.iconbitmap('small_logo.ico')#左上角加logo
 
@@ -21,37 +55,40 @@ root.iconbitmap('small_logo.ico')#左上角加logo
 cv = tkinter.Canvas(root,bg='white')
 
 #设置背景图片
-w=1000
+w=600
 h=600
 canvas_root=tkinter.Canvas(root,width=w,height=h)
 im_root=get_image('background.jpg',w,h)
 canvas_root.create_image(w/2,h/2,image=im_root)
 canvas_root.pack()
 
+#label
+canvas_root.create_text(50, 550, text = '请输入要查询的名次:',
+                        font=('楷体',15),
+                        fill='DodgerBlue',
+                        anchor = W,
+                        justify = LEFT)
+#输入框
+inp = Entry(root)
+inp.place(x=250, y=536, width=70, height=25)
 
 
-#为Label组件设置图片
-lbImage=tkinter.Label(root,text='是否在本地下载豆瓣20个高分电影海报？',
-                      fg='blue',
-                      font=('隶书',20),
-                      background='#000000',
-                      compound=tkinter.CENTER)
-lbImage.place(x=150,y=150,width=500,height=80)
+#按钮
+butt1=tkinter.Button(root,text='查询',
+                      fg='DodgerBlue',
+                      font=('楷体',15),
+                      background='seashell',
+                      compound=tkinter.CENTER,
+                      command=lambda: onclick(inp.get()))
+butt1.place(x=330,y=536,width=70,height=25)
 
+butt2=tkinter.Button(root,text='下载Top250海报',
+                      fg='DodgerBlue',
+                      font=('楷体',15),
+                      background='seashell',
+                      compound=tkinter.CENTER,
+                      command=init)
+butt2.place(x=330,y=480,width=160,height=40)
 
-
-#为按钮设置背景图片
-btn0k=tkinter.Button(root,text='确定',
-                     fg='blue',
-                     font=('隶书',15),
-                     background='#333333',
-                     compound=tkinter.CENTER,
-                     command=onclick)
-btn0k.place(x=330,y=300,width=100,height=50)
 
 root.mainloop()
-
-
-
-
-
